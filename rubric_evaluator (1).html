@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Rubric Assignment Evaluator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e0e6ed;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 25px;
+            background: linear-gradient(135deg, #3498db, #2c3e50);
+            border-radius: 2px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-input, .form-textarea, .form-select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e6ed;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #fafbfc;
+        }
+
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            outline: none;
+            border-color: #3498db;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(149, 165, 166, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(39, 174, 96, 0.3);
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+
+        .criterion-item {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .criterion-item:hover {
+            border-color: #3498db;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.1);
+        }
+
+        .criterion-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 15px;
+        }
+
+        .criterion-name {
+            flex: 1;
+        }
+
+        .criterion-points {
+            width: 120px;
+        }
+
+        .criterion-description {
+            width: 100%;
+        }
+
+        .remove-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .remove-btn:hover {
+            background: #c0392b;
+            transform: scale(1.1);
+        }
+
+        .evaluation-results {
+            display: none;
+        }
+
+        .result-item {
+            background: linear-gradient(135deg, #ecf0f1, #bdc3c7);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid #3498db;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .result-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .result-score {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .score-input {
+            width: 80px;
+            padding: 5px 10px;
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .feedback-text {
+            background: white;
+            border: 2px solid #e0e6ed;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+            line-height: 1.6;
+        }
+
+        .total-score {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .total-score h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .total-score .score {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e0e6ed;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .buttons-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .criterion-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .buttons-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AI Rubric Assignment Evaluator</h1>
+            <p>Intelligent assessment tool with manual override capabilities</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Assignment Setup Section -->
+            <div class="section">
+                <h2 class="section-title">Assignment Setup</h2>
+                <div class="form-group">
+                    <label class="form-label" for="assignmentTitle">Assignment Title</label>
+                    <input type="text" id="assignmentTitle" class="form-input" placeholder="Enter assignment title...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="assignmentDescription">Assignment Description</label>
+                    <textarea id="assignmentDescription" class="form-textarea" placeholder="Describe the assignment requirements and expectations..."></textarea>
+                </div>
+            </div>
+
+            <!-- Rubric Criteria Section -->
+            <div class="section">
+                <h2 class="section-title">Rubric Criteria</h2>
+                <div id="criteriaContainer"></div>
+                <button class="btn btn-secondary btn-small" onclick="addCriterion()">+ Add Criterion</button>
+            </div>
+
+            <!-- Student Submission Section -->
+            <div class="section">
+                <h2 class="section-title">Student Submission</h2>
+                <div class="form-group">
+                    <label class="form-label" for="studentName">Student Name (Optional)</label>
+                    <input type="text" id="studentName" class="form-input" placeholder="Enter student name...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="studentSubmission">Student Submission</label>
+                    <textarea id="studentSubmission" class="form-textarea" placeholder="Paste or type the student's submission here..."></textarea>
+                </div>
+                <div class="buttons-group">
+                    <button class="btn btn-primary" onclick="evaluateSubmission()">🤖 AI Evaluate</button>
+                    <button class="btn btn-secondary" onclick="clearAll()">🗑️ Clear All</button>
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div class="loading" id="loadingIndicator">
+                <div class="loading-spinner"></div>
+                <p>AI is evaluating the submission...</p>
+            </div>
+
+            <!-- Evaluation Results Section -->
+            <div class="section evaluation-results" id="evaluationResults">
+                <h2 class="section-title">Evaluation Results</h2>
+                <div id="resultsContainer"></div>
+                <div class="total-score" id="totalScore">
+                    <h3>Total Score</h3>
+                    <div class="score">0/0</div>
+                </div>
+                <div class="buttons-group">
+                    <button class="btn btn-success" onclick="finalizeEvaluation()">✅ Finalize Evaluation</button>
+                    <button class="btn btn-secondary" onclick="exportResults()">📄 Export Results</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let criteria = [];
+        let evaluationData = {};
+
+        // Initialize with Module 1: Proper Use of AI Rubric criteria
+        function initializeDefaultCriteria() {
+            addCriterion('MS Word File Creation & Saving', 2, 'Basic skills were demonstrated in the proper create and saving of a MS Word file.');
+            addCriterion('Ethical Considerations', 3, 'Complete list of ethical considerations about AI');
+            addCriterion('Positive Use Case', 5, 'Complete example of a positive use case of AI for a specific class was given.');
+            addCriterion('Guidelines for Ethical Use', 5, 'Developed guideline for the ethical use of AI.');
+            addCriterion('Practical Application', 5, 'Complete example of a practical, ethical application of AI was given.');
+            addCriterion('Potential Impact', 5, 'Potential impact of AI was given.');
+        }
+
+        function addCriterion(name = '', points = 10, description = '') {
+            const id = Date.now() + Math.random();
+            const criterion = { id, name, points, description };
+            criteria.push(criterion);
+            renderCriteria();
+        }
+
+        function removeCriterion(id) {
+            criteria = criteria.filter(c => c.id !== id);
+            renderCriteria();
+        }
+
+        function renderCriteria() {
+            const container = document.getElementById('criteriaContainer');
+            container.innerHTML = criteria.map(criterion => `
+                <div class="criterion-item">
+                    <div class="criterion-header">
+                        <input type="text" class="form-input criterion-name" 
+                               placeholder="Criterion name..." 
+                               value="${criterion.name}"
+                               onchange="updateCriterion(${criterion.id}, 'name', this.value)">
+                        <input type="number" class="form-input criterion-points" 
+                               placeholder="Points" 
+                               value="${criterion.points}"
+                               min="1" max="100"
+                               onchange="updateCriterion(${criterion.id}, 'points', parseInt(this.value))">
+                        <button class="remove-btn" onclick="removeCriterion(${criterion.id})">×</button>
+                    </div>
+                    <textarea class="form-textarea criterion-description" 
+                              placeholder="Describe what this criterion evaluates..."
+                              onchange="updateCriterion(${criterion.id}, 'description', this.value)">${criterion.description}</textarea>
+                </div>
+            `).join('');
+        }
+
+        function updateCriterion(id, field, value) {
+            const criterion = criteria.find(c => c.id === id);
+            if (criterion) {
+                criterion[field] = value;
+            }
+        }
+
+        // Simulate AI evaluation for Module 1: Proper Use of AI Rubric
+        function simulateAIEvaluation(submission, criterion) {
+            // This is a mock AI evaluation - in a real implementation, 
+            // this would call an actual AI service like OpenAI GPT, Claude, etc.
+            
+            const evaluationLogic = {
+                'MS Word File Creation & Saving': {
+                    maxPoints: 2,
+                    evaluate: (text) => {
+                        const hasWordSkills = /word|document|formatting|spell|spacing|save|file/i.test(text);
+                        const hasMultipleErrors = /error|mistake|problem|issue/gi.test(text) && (text.match(/error|mistake|problem|issue/gi) || []).length > 1;
+                        
+                        if (hasWordSkills && !hasMultipleErrors) {
+                            return { score: 2, feedback: "Basic skills were demonstrated in the proper creation and saving of a MS Word file." };
+                        } else if (hasWordSkills) {
+                            return { score: 1, feedback: "Some skills were demonstrated but there was one error in applying the software features of formatting, spell-checking, line spacing, etc." };
+                        } else {
+                            return { score: 0, feedback: "Multiple errors in applying the software features of formatting, spell-checking, line spacing, etc." };
+                        }
+                    }
+                },
+                'Ethical Considerations': {
+                    maxPoints: 3,
+                    evaluate: (text) => {
+                        const ethicalTerms = ['bias', 'privacy', 'misinformation', 'transparency', 'fairness', 'accountability', 'harmful', 'responsible'];
+                        const count = ethicalTerms.filter(term => new RegExp(term, 'i').test(text)).length;
+                        
+                        if (count >= 3) {
+                            return { score: 3, feedback: "At least three ethical considerations about AI were listed." };
+                        } else if (count > 0) {
+                            return { score: 2, feedback: "Less than 3 ethical considerations about AI were listed." };
+                        } else {
+                            return { score: 0, feedback: "No ethical considerations about AI were listed." };
+                        }
+                    }
+                },
+                'Positive Use Case': {
+                    maxPoints: 5,
+                    evaluate: (text) => {
+                        const hasExample = /example|case|situation|scenario/i.test(text);
+                        const hasSpecificContext = /course|class|school|work|job|real.life/i.test(text);
+                        const hasEthicalExplanation = /ethical|responsible|proper|appropriate/i.test(text);
+                        
+                        if (hasExample && hasSpecificContext && hasEthicalExplanation) {
+                            return { score: 5, feedback: "An example of a positive use case of AI was given that described the specific course or real life situation and an explanation of how the information received could be ethically used." };
+                        } else if (hasExample && (hasSpecificContext || hasEthicalExplanation)) {
+                            return { score: 3, feedback: "An example of a positive use case of AI was given but one element was missing: either the specific course/real life situation or an explanation of ethical use." };
+                        } else {
+                            return { score: 0, feedback: "An example was given but more than one required element was missing." };
+                        }
+                    }
+                },
+                'Guidelines for Ethical Use': {
+                    maxPoints: 5,
+                    evaluate: (text) => {
+                        const guidelines = ['misinformation', 'communicate respectfully', 'bias', 'citation'];
+                        const count = guidelines.filter(guideline => new RegExp(guideline.replace(' ', '.*'), 'i').test(text)).length;
+                        
+                        if (count >= 4) {
+                            return { score: 5, feedback: "Guidelines for the ethical use of AI were developed that included how to avoid misinformation, how to communicate respectfully, how to recognize potential biases and how to create a citation for ChatGPT." };
+                        } else if (count >= 3) {
+                            return { score: 3, feedback: "Guidelines for the ethical use of AI were developed but one element was not included." };
+                        } else {
+                            return { score: 0, feedback: "Guidelines were developed but more than one required element was not included." };
+                        }
+                    }
+                },
+                'Practical Application': {
+                    maxPoints: 5,
+                    evaluate: (text) => {
+                        const hasPrompt = /prompt|question|ask/i.test(text);
+                        const hasAIAnswer = /answer|response|reply|output/i.test(text);
+                        const hasFactCheck = /fact.check|verify|confirm|research/i.test(text);
+                        
+                        if (hasPrompt && hasAIAnswer && hasFactCheck) {
+                            return { score: 5, feedback: "An example of a practical, ethical application of AI was given that included the prompt, the answer given from the AI and how the answer was fact-checked." };
+                        } else if ((hasPrompt && hasAIAnswer) || (hasPrompt && hasFactCheck) || (hasAIAnswer && hasFactCheck)) {
+                            return { score: 3, feedback: "An example of a practical, ethical application of AI was given but one element was not included: the prompt, AI answer, or fact-checking method." };
+                        } else {
+                            return { score: 0, feedback: "An example was given but more than one required element was not included." };
+                        }
+                    }
+                },
+                'Potential Impact': {
+                    maxPoints: 5,
+                    evaluate: (text) => {
+                        const hasSocietyImpact = /society|social|community|world|people/i.test(text);
+                        const hasResponsibleUsage = /responsible|proper|careful|mindful|ethical/i.test(text);
+                        
+                        if (hasSocietyImpact && hasResponsibleUsage) {
+                            return { score: 5, feedback: "The potential impact of AI on society and the importance of responsible AI usage was discussed." };
+                        } else if (hasSocietyImpact || hasResponsibleUsage) {
+                            return { score: 3, feedback: "The potential impact of AI was discussed but either its impact on society or the importance of responsible AI usage was not discussed." };
+                        } else {
+                            return { score: 0, feedback: "The potential impact of AI on society and the importance of responsible AI usage was not discussed." };
+                        }
+                    }
+                }
+            };
+
+            const evaluator = evaluationLogic[criterion.name];
+            if (evaluator) {
+                return evaluator.evaluate(submission);
+            }
+
+            // Fallback for any custom criteria
+            const baseScore = Math.floor(criterion.points * (0.6 + Math.random() * 0.4));
+            return {
+                score: baseScore,
+                maxScore: criterion.points,
+                feedback: `This criterion shows ${baseScore >= criterion.points * 0.8 ? 'strong' : baseScore >= criterion.points * 0.6 ? 'adequate' : 'developing'} performance.`
+            };
+        }
+
+        async function evaluateSubmission() {
+            const title = document.getElementById('assignmentTitle').value;
+            const description = document.getElementById('assignmentDescription').value;
+            const submission = document.getElementById('studentSubmission').value;
+            const studentName = document.getElementById('studentName').value;
+
+            if (!submission.trim()) {
+                alert('Please enter a student submission to evaluate.');
+                return;
+            }
+
+            if (criteria.length === 0) {
+                alert('Please add at least one rubric criterion.');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('evaluationResults').style.display = 'none';
+
+            // Simulate AI processing delay
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            // Generate evaluations for each criterion
+            evaluationData = {
+                assignmentTitle: title,
+                studentName: studentName,
+                criteria: criteria.map(criterion => {
+                    const evaluation = simulateAIEvaluation(submission, criterion);
+                    return {
+                        ...criterion,
+                        aiScore: evaluation.score,
+                        currentScore: evaluation.score,
+                        maxScore: evaluation.maxScore,
+                        feedback: evaluation.feedback
+                    };
+                })
+            };
+
+            renderResults();
+            
+            // Hide loading and show results
+            document.getElementById('loadingIndicator').style.display = 'none';
+            document.getElementById('evaluationResults').style.display = 'block';
+        }
+
+        function renderResults() {
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = evaluationData.criteria.map(criterion => `
+                <div class="result-item">
+                    <div class="result-header">
+                        <div class="result-title">${criterion.name}</div>
+                        <div class="result-score">
+                            <span>Score:</span>
+                            <input type="number" class="score-input" 
+                                   value="${criterion.currentScore}" 
+                                   max="${criterion.maxScore}" 
+                                   min="0"
+                                   onchange="updateScore(${criterion.id}, parseInt(this.value))">
+                            <span>/ ${criterion.maxScore}</span>
+                        </div>
+                    </div>
+                    <div class="feedback-text">${criterion.feedback}</div>
+                </div>
+            `).join('');
+
+            updateTotalScore();
+        }
+
+        function updateScore(criterionId, newScore) {
+            const criterion = evaluationData.criteria.find(c => c.id === criterionId);
+            if (criterion) {
+                criterion.currentScore = Math.max(0, Math.min(newScore, criterion.maxScore));
+                updateTotalScore();
+            }
+        }
+
+        function updateTotalScore() {
+            const totalScore = evaluationData.criteria.reduce((sum, c) => sum + c.currentScore, 0);
+            const maxScore = evaluationData.criteria.reduce((sum, c) => sum + c.maxScore, 0);
+            const percentage = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+            
+            document.getElementById('totalScore').innerHTML = `
+                <h3>Total Score</h3>
+                <div class="score">${totalScore}/${maxScore} (${percentage}%)</div>
+            `;
+        }
+
+        function finalizeEvaluation() {
+            if (!evaluationData.criteria) {
+                alert('No evaluation data to finalize.');
+                return;
+            }
+
+            const confirmation = confirm('Are you sure you want to finalize this evaluation? This will mark it as complete.');
+            if (confirmation) {
+                alert('Evaluation finalized successfully! In a real system, this would be saved to your gradebook.');
+            }
+        }
+
+        function exportResults() {
+            if (!evaluationData.criteria) {
+                alert('No evaluation data to export.');
+                return;
+            }
+
+            const totalScore = evaluationData.criteria.reduce((sum, c) => sum + c.currentScore, 0);
+            const maxScore = evaluationData.criteria.reduce((sum, c) => sum + c.maxScore, 0);
+            const percentage = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+
+            const exportData = `
+RUBRIC EVALUATION REPORT
+========================
+
+Assignment: ${evaluationData.assignmentTitle}
+Student: ${evaluationData.studentName || 'Not specified'}
+Date: ${new Date().toLocaleDateString()}
+
+DETAILED SCORES:
+${evaluationData.criteria.map(c => `
+${c.name}: ${c.currentScore}/${c.maxScore}
+Feedback: ${c.feedback}
+`).join('\n')}
+
+TOTAL SCORE: ${totalScore}/${maxScore} (${percentage}%)
+            `.trim();
+
+            // Create and download file
+            const blob = new Blob([exportData], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `evaluation_${evaluationData.studentName || 'student'}_${Date.now()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function clearAll() {
+            if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+                document.getElementById('assignmentTitle').value = '';
+                document.getElementById('assignmentDescription').value = '';
+                document.getElementById('studentName').value = '';
+                document.getElementById('studentSubmission').value = '';
+                criteria = [];
+                evaluationData = {};
+                renderCriteria();
+                document.getElementById('evaluationResults').style.display = 'none';
+                initializeDefaultCriteria();
+            }
+        }
+
+        // Initialize the application
+        initializeDefaultCriteria();
+    </script>
+</body>
+</html>
