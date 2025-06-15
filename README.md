@@ -1,4 +1,5 @@
 Rubric Grader
+
 A comprehensive web-based rubric assignment evaluator for you. This tool will allow you to input student submissions, define rubric criteria, get AI-powered evaluations, and manually adjust scores as needed.
 It is integrated a comprehensive AI content detection system into the rubric evaluator. Here are the key features added:
 🔍 AI Content Detection Features:
